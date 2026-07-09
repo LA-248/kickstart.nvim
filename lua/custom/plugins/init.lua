@@ -11,6 +11,17 @@ return {
       'DiffviewToggleFiles',
     },
     keys = {
+      {
+        '<C-S-A-D-d>',
+        function()
+          if require('diffview.lib').get_current_view() then
+            vim.cmd 'DiffviewClose'
+          else
+            vim.cmd 'DiffviewOpen'
+          end
+        end,
+        desc = 'Diffview toggle (Hyper+D)',
+      },
       { '<leader>gd', '<cmd>DiffviewOpen<cr>', desc = '[G]it [D]iff view' },
       { '<leader>gD', '<cmd>DiffviewClose<cr>', desc = '[G]it close [D]iff view' },
       { '<leader>gh', '<cmd>DiffviewFileHistory %<cr>', desc = '[G]it file [H]istory' },
@@ -56,9 +67,12 @@ return {
     },
   },
   {
-    -- amongst your other plugins
-    { 'akinsho/toggleterm.nvim', version = '*', config = true },
-    -- or
+    'akinsho/toggleterm.nvim',
+    version = '*',
+    keys = {
+      { '<C-S-A-D-b>', '<cmd>ToggleTerm direction=float<cr>', desc = 'Terminal (Hyper+B)' },
+    },
+    opts = {},
   },
   -- nvim v0.8.0
   {
@@ -78,6 +92,7 @@ return {
     -- setting the keybinding for LazyGit with 'keys' is recommended in
     -- order to load the plugin when the command is run for the first time
     keys = {
+      { '<C-S-A-D-v>', '<cmd>LazyGit<cr>', desc = 'LazyGit (Hyper+V)' },
       { '<leader>lg', '<cmd>LazyGit<cr>', desc = 'LazyGit' },
     },
   },
