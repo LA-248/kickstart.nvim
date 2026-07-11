@@ -70,7 +70,7 @@ return {
     'akinsho/toggleterm.nvim',
     version = '*',
     keys = {
-      { '<C-S-A-D-b>', '<cmd>ToggleTerm direction=float<cr>', desc = 'Terminal (Hyper+B)' },
+      { '<C-S-A-D-b>', '<cmd>ToggleTerm direction=horizontal<cr>', desc = 'Terminal (Hyper+B)' },
     },
     opts = {},
   },

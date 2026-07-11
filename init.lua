@@ -622,6 +622,8 @@ require('lazy').setup({
 
         gh_actions_ls = {},
 
+        terraformls = {},
+
         vtsls = {},
 
         yamlls = {
