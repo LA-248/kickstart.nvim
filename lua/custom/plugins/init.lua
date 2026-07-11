@@ -70,9 +70,16 @@ return {
     'akinsho/toggleterm.nvim',
     version = '*',
     keys = {
-      { '<C-S-A-D-b>', '<cmd>ToggleTerm direction=horizontal<cr>', desc = 'Terminal (Hyper+B)' },
+      {
+        '<C-S-A-D-b>',
+        '<cmd>ToggleTerm direction=horizontal<cr>',
+        mode = { 'n', 't' },
+        desc = 'Toggle terminal (Hyper+B)',
+      },
     },
-    opts = {},
+    opts = {
+      size = 25,
+    },
   },
   -- nvim v0.8.0
   {
