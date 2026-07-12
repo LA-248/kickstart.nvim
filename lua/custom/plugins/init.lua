@@ -103,4 +103,23 @@ return {
       { '<leader>lg', '<cmd>LazyGit<cr>', desc = 'LazyGit' },
     },
   },
+  {
+    'nvim-neo-tree/neo-tree.nvim',
+    branch = 'v3.x',
+    cmd = 'Neotree',
+    keys = {
+      { '<C-S-A-D-k>', '<cmd>Neotree toggle position=float reveal<cr>', desc = 'Toggle Neo-tree (Hyper+k)', silent = true },
+    },
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      'nvim-tree/nvim-web-devicons',
+    },
+    lazy = false,
+    opts = {
+      window = {
+        position = 'float',
+      },
+    },
+  },
 }
