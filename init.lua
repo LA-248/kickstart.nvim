@@ -250,6 +250,7 @@ require('lazy').setup({
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
     opts = {
+      current_line_blame = true,
       signs = {
         add = { text = '+' },
         change = { text = '~' },
@@ -337,113 +338,132 @@ require('lazy').setup({
   -- Use the `dependencies` key to specify the dependencies of a particular plugin
 
   { -- Fuzzy Finder (files, lsp, etc)
-    'nvim-telescope/telescope.nvim',
-    event = 'VimEnter',
-    branch = '0.1.x',
+    'folke/snacks.nvim',
+    priority = 1000,
+    lazy = false,
     dependencies = {
-      'nvim-lua/plenary.nvim',
-      { -- If encountering errors, see telescope-fzf-native README for installation instructions
-        'nvim-telescope/telescope-fzf-native.nvim',
-
-        -- `build` is used to run some command when the plugin is installed/updated.
-        -- This is only run then, not every time Neovim starts up.
-        build = 'make',
-
-        -- `cond` is a condition used to determine whether this plugin should be
-        -- installed and loaded.
-        cond = function()
-          return vim.fn.executable 'make' == 1
-        end,
-      },
-      { 'nvim-telescope/telescope-ui-select.nvim' },
-
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
-    config = function()
-      -- Telescope is a fuzzy finder that comes with a lot of different things that
-      -- it can fuzzy find! It's more than just a "file finder", it can search
-      -- many different aspects of Neovim, your workspace, LSP, and more!
-      --
-      -- The easiest way to use Telescope, is to start by doing something like:
-      --  :Telescope help_tags
-      --
-      -- After running this command, a window will open up and you're able to
-      -- type in the prompt window. You'll see a list of `help_tags` options and
-      -- a corresponding preview of the help.
-      --
-      -- Two important keymaps to use while in Telescope are:
-      --  - Insert mode: <c-/>
-      --  - Normal mode: ?
-      --
-      -- This opens a window that shows you all of the keymaps for the current
-      -- Telescope picker. This is really useful to discover what Telescope can
-      -- do as well as how to actually do it!
-
-      -- [[ Configure Telescope ]]
-      -- See `:help telescope` and `:help telescope.setup()`
-      require('telescope').setup {
-        -- You can put your default mappings / updates / etc. in here
-        --  All the info you're looking for is in `:help telescope.setup()`
-        --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
-        -- pickers = {}
-        extensions = {
-          ['ui-select'] = {
-            require('telescope.themes').get_dropdown(),
+    opts = {
+      explorer = {},
+      gh = {},
+      image = {},
+      indent = {},
+      lazygit = {},
+      picker = {
+        enabled = true,
+        sources = {
+          explorer = {
+            config = function(opts)
+              opts = require('snacks.picker.source.explorer').setup(opts)
+              opts.actions.confirm = function(picker, item, action)
+                if item and not item.dir then
+                  picker.opts.jump.close = true
+                  Snacks.picker.actions.jump(picker, item, action)
+                else
+                  require('snacks.explorer.actions').actions.confirm(picker, item, action)
+                end
+              end
+              return opts
+            end,
+            focus = 'input',
+            layout = { preset = 'default', preview = false },
+            matcher = { fuzzy = true },
           },
         },
-      }
-
-      -- Enable Telescope extensions if they are installed
-      pcall(require('telescope').load_extension, 'fzf')
-      pcall(require('telescope').load_extension, 'ui-select')
-
-      -- See `:help telescope.builtin`
-      local builtin = require 'telescope.builtin'
-      vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
-      vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-      vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
-      vim.keymap.set('n', '<C-S-A-D-f>', builtin.find_files, { desc = 'Find files (Hyper+F)' })
-      vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-      vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-      vim.keymap.set('n', '<C-S-A-D-n>', builtin.live_grep, { desc = 'Live grep (Hyper+N)' })
-      vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-      vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
-      vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+        ui_select = true,
+      },
+      statuscolumn = {},
+      terminal = {},
+    },
+    config = function(_, opts)
+      require('snacks').setup(opts)
+      vim.keymap.set('n', '<C-S-A-D-k>', function()
+        local explorer = Snacks.picker.get({ source = 'explorer' })[1]
+        if explorer then
+          explorer:close()
+        else
+          Snacks.explorer.reveal()
+        end
+      end, { desc = 'Toggle Snacks Explorer (Hyper+k)', silent = true })
+      vim.keymap.set('n', '<C-S-A-D-i>', function()
+        Snacks.git.blame_line()
+      end, { desc = 'Git history for current line (Hyper+I)' })
+      vim.keymap.set('n', '<leader>gi', function()
+        Snacks.picker.gh_issue()
+      end, { desc = 'GitHub Issues (open)' })
+      vim.keymap.set('n', '<leader>gI', function()
+        Snacks.picker.gh_issue { state = 'all' }
+      end, { desc = 'GitHub Issues (all)' })
+      vim.keymap.set('n', '<leader>gp', function()
+        Snacks.picker.gh_pr()
+      end, { desc = 'GitHub Pull Requests (open)' })
+      vim.keymap.set('n', '<C-S-A-D-p>', function()
+        Snacks.picker.projects()
+      end, { desc = 'Projects (Hyper+P)' })
+      vim.keymap.set('n', '<leader>gP', function()
+        Snacks.picker.gh_pr { state = 'all' }
+      end, { desc = 'GitHub Pull Requests (all)' })
+      vim.keymap.set('n', '<C-S-A-D-v>', function()
+        Snacks.lazygit()
+      end, { desc = 'LazyGit (Hyper+V)' })
+      vim.keymap.set({ 'n', 't' }, '<C-S-A-D-b>', function()
+        Snacks.terminal.toggle(nil, { win = { height = 25 } })
+      end, { desc = 'Toggle terminal (Hyper+B)' })
+      vim.keymap.set('n', '<leader>sh', function()
+        Snacks.picker.help()
+      end, { desc = '[S]earch [H]elp' })
+      vim.keymap.set('n', '<leader>sk', function()
+        Snacks.picker.keymaps()
+      end, { desc = '[S]earch [K]eymaps' })
+      vim.keymap.set('n', '<leader>sf', function()
+        Snacks.picker.files()
+      end, { desc = '[S]earch [F]iles' })
+      vim.keymap.set('n', '<C-S-A-D-f>', function()
+        Snacks.picker.files()
+      end, { desc = 'Find files (Hyper+F)' })
+      vim.keymap.set('n', '<leader>ss', function()
+        Snacks.picker()
+      end, { desc = '[S]earch [S]elect Picker' })
+      vim.keymap.set('n', '<leader>sw', function()
+        Snacks.picker.grep_word()
+      end, { desc = '[S]earch current [W]ord' })
+      vim.keymap.set('n', '<leader>sg', function()
+        Snacks.picker.grep()
+      end, { desc = '[S]earch by [G]rep' })
+      vim.keymap.set('n', '<C-S-A-D-n>', function()
+        Snacks.picker.grep()
+      end, { desc = 'Live grep (Hyper+N)' })
+      vim.keymap.set('n', '<leader>sd', function()
+        Snacks.picker.diagnostics()
+      end, { desc = '[S]earch [D]iagnostics' })
+      vim.keymap.set('n', '<leader>sr', function()
+        Snacks.picker.resume()
+      end, { desc = '[S]earch [R]esume' })
+      vim.keymap.set('n', '<leader>s.', function()
+        Snacks.picker.recent()
+      end, { desc = '[S]earch Recent Files ("." for repeat)' })
+      vim.keymap.set('n', '<leader><leader>', function()
+        Snacks.picker.buffers()
+      end, { desc = '[ ] Find existing buffers' })
 
       -- Bind Hyper + E to open the floating diagnostic error window
       vim.keymap.set('n', '<C-S-A-D-e>', vim.diagnostic.open_float, {
         desc = 'Show line diagnostics (Hyper+E)',
       })
 
-      -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
-        -- You can pass additional configuration to Telescope to change the theme, layout, etc.
-        builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-          winblend = 10,
-          previewer = false,
-        })
+        Snacks.picker.lines()
       end, { desc = '[/] Fuzzily search in current buffer' })
 
-      -- It's also possible to pass additional configuration options.
-      --  See `:help telescope.builtin.live_grep()` for information about particular keys
       vim.keymap.set('n', '<leader>s/', function()
-        builtin.live_grep {
-          grep_open_files = true,
-          prompt_title = 'Live Grep in Open Files',
-        }
+        Snacks.picker.grep_buffers()
       end, { desc = '[S]earch [/] in Open Files' })
 
       -- Shortcut for searching your Neovim configuration files
       vim.keymap.set('n', '<leader>sn', function()
-        builtin.find_files { cwd = vim.fn.stdpath 'config' }
+        Snacks.picker.files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
     end,
   },
@@ -524,27 +544,39 @@ require('lazy').setup({
           -- Jump to the definition of the word under your cursor.
           --  This is where a variable was first declared, or where a function is defined, etc.
           --  To jump back, press <C-t>.
-          map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+          map('gd', function()
+            Snacks.picker.lsp_definitions()
+          end, '[G]oto [D]efinition')
 
           -- Find references for the word under your cursor.
-          map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+          map('gr', function()
+            Snacks.picker.lsp_references()
+          end, '[G]oto [R]eferences')
 
           -- Jump to the implementation of the word under your cursor.
           --  Useful when your language has ways of declaring types without an actual implementation.
-          map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+          map('gI', function()
+            Snacks.picker.lsp_implementations()
+          end, '[G]oto [I]mplementation')
 
           -- Jump to the type of the word under your cursor.
           --  Useful when you're not sure what type a variable is and you want to see
           --  the definition of its *type*, not where it was *defined*.
-          map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+          map('<leader>D', function()
+            Snacks.picker.lsp_type_definitions()
+          end, 'Type [D]efinition')
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
-          map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+          map('<leader>ds', function()
+            Snacks.picker.lsp_symbols()
+          end, '[D]ocument [S]ymbols')
 
           -- Fuzzy find all the symbols in your current workspace.
           --  Similar to document symbols, except searches over your entire project.
-          map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+          map('<leader>ws', function()
+            Snacks.picker.lsp_workspace_symbols()
+          end, '[W]orkspace [S]ymbols')
 
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.
@@ -564,7 +596,7 @@ require('lazy').setup({
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
               buffer = event.buf,
@@ -591,7 +623,7 @@ require('lazy').setup({
           -- code, if the language server you are using supports them
           --
           -- This may be unwanted, since they displace some of your code
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
