@@ -190,6 +190,7 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 --
 --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-S-A-D-a>', '<C-w><C-w>', { desc = 'Cycle to the next window (Hyper+A)' })
+vim.keymap.set('n', '<C-S-A-D-z>', '<cmd>b#<CR>', { desc = 'Switch to alternate buffer (Hyper+Z)' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
