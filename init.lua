@@ -370,6 +370,11 @@ require('lazy').setup({
             focus = 'input',
             layout = { preset = 'default', preview = false },
             matcher = { fuzzy = true },
+            win = {
+              list = {
+                footer_keys = { 'a', 'd', 'r', '<CR>', 'P', '?' },
+              },
+            },
           },
         },
         ui_select = true,
@@ -456,6 +461,9 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>/', function()
         Snacks.picker.lines()
       end, { desc = '[/] Fuzzily search in current buffer' })
+      vim.keymap.set('n', '<C-S-A-D-l>', function()
+        Snacks.picker.lines()
+      end, { desc = 'Search lines in current buffer (Hyper+L)' })
 
       vim.keymap.set('n', '<leader>s/', function()
         Snacks.picker.grep_buffers()
@@ -931,29 +939,50 @@ require('lazy').setup({
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
-    branch = 'master',
+    branch = 'main',
+    lazy = false,
     build = ':TSUpdate',
-    main = 'nvim-treesitter.configs', -- Sets main module to use for opts
-    -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-    opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
-      -- Autoinstall languages that are not installed
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
-    },
-    -- There are additional nvim-treesitter modules that you can use to interact
-    -- with nvim-treesitter. You should go explore a few and see what interests you:
-    --
-    --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-    --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-    --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+    config = function()
+      local parsers = {
+        'bash',
+        'c',
+        'css',
+        'diff',
+        'dockerfile',
+        'gitignore',
+        'html',
+        'javascript',
+        'json',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'terraform',
+        'tsx',
+        'typescript',
+        'vim',
+        'vimdoc',
+        'yaml',
+      }
+
+      -- Keep the parser versions synchronized with nvim-treesitter's queries.
+      -- Once installed, this completes immediately on subsequent startups.
+      require('nvim-treesitter').install(parsers):wait(300000)
+
+      vim.api.nvim_create_autocmd('FileType', {
+        group = vim.api.nvim_create_augroup('kickstart-treesitter', { clear = true }),
+        callback = function(event)
+          local language = vim.treesitter.language.get_lang(vim.bo[event.buf].filetype)
+          if language and vim.tbl_contains(parsers, language) then
+            local started = pcall(vim.treesitter.start, event.buf, language)
+            if started then
+              vim.bo[event.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            end
+          end
+        end,
+      })
+    end,
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
