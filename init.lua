@@ -360,19 +360,8 @@ require('lazy').setup({
         enabled = true,
         sources = {
           explorer = {
-            config = function(opts)
-              opts = require('snacks.picker.source.explorer').setup(opts)
-              opts.actions.confirm = function(picker, item, action)
-                if item and not item.dir then
-                  picker.opts.jump.close = true
-                  Snacks.picker.actions.jump(picker, item, action)
-                else
-                  require('snacks.explorer.actions').actions.confirm(picker, item, action)
-                end
-              end
-              return opts
-            end,
             focus = 'input',
+            jump = { close = true },
             layout = { preset = 'default', preview = false },
             matcher = { fuzzy = true },
             win = {
@@ -380,6 +369,13 @@ require('lazy').setup({
                 footer_keys = { 'a', 'd', 'r', '<CR>', 'P', '?' },
               },
             },
+          },
+          projects = {
+            dev = {
+              '~/Dropbox/Code/Projects/',
+              '~/code',
+            },
+            recent = false,
           },
         },
         ui_select = true,
@@ -699,8 +695,6 @@ require('lazy').setup({
       --    :Mason
       --
       --  You can press `g?` for help in this menu.
-      require('mason').setup()
-
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
