@@ -373,7 +373,9 @@ require('lazy').setup({
           projects = {
             dev = {
               '~/Dropbox/Code/Projects/',
-              '~/Desktop/code',
+              '~/Desktop/code/ds',
+              '~/Desktop/code/platform',
+              '~/Desktop/code/sdp',
             },
             recent = false,
           },
