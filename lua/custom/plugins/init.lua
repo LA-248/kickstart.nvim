@@ -54,4 +54,8 @@ return {
       end, { desc = 'Harpoon file 2' })
     end,
   },
+  {
+    'mluders/comfy-line-numbers.nvim',
+    opts = {},
+  },
 }
