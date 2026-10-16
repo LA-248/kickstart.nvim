@@ -194,6 +194,11 @@ vim.keymap.set('n', '<C-S-A-D-z>', '<cmd>b#<CR>', { desc = 'Switch to alternate 
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Keep the cursor centered in the window when scrolling through code
+--  See `:help CTRL-d`, `:help CTRL-u` and `:help zz`
+vim.keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Scroll down half a page and center cursor' })
+vim.keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Scroll up half a page and center cursor' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
