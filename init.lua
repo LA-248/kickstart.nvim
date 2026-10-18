@@ -374,6 +374,7 @@ require('lazy').setup({
                 footer_keys = { 'a', 'd', 'r', '<CR>', 'P', '?' },
               },
             },
+            hidden = true,
           },
           projects = {
             dev = {
@@ -383,6 +384,9 @@ require('lazy').setup({
               '~/Desktop/code/sdp',
             },
             recent = false,
+          },
+          files = {
+            hidden = true,
           },
         },
         ui_select = true,
